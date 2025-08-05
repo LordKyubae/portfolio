@@ -4,7 +4,9 @@ import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
   ...authTables,
-  numbers: defineTable({
-    value: v.number()
+  projects: defineTable({
+    title: v.string(),
+    description: v.string(),
+    link: v.string()
   })
 });

@@ -7,6 +7,12 @@ interface MacWindowProps {
   children: ReactNode;
   onClose: () => void;
   darkMode?: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  onDragStop?: (e: any, data: { x: number; y: number }) => void;
+  onResizeStop?: (e: any, direction: any, ref: HTMLElement, delta: any, position: { x: number; y: number }) => void;
 }
 
 interface TrafficLightProps {
@@ -23,9 +29,7 @@ const TrafficLight: React.FC<TrafficLightProps> = ({ color, onClick }) => (
     role="button"
     tabIndex={0}
     aria-label={`${color} traffic light button`}
-    onKeyDown={(e) => {
-      if (e.key === 'Enter' || e.key === ' ') onClick();
-    }}
+    onKeyDown={(e) => {if (e.key === 'Enter' || e.key === ' ') onClick();}}
     style={{ cursor: 'pointer' }}
   >
     <circle
@@ -39,10 +43,14 @@ const TrafficLight: React.FC<TrafficLightProps> = ({ color, onClick }) => (
   </svg>
 );
 
-const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose, darkMode = false }) => {
+const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose, darkMode = false, x, y, width, height, onDragStop, onResizeStop }) => {
   return (
     <Rnd
       default={{ x: 100, y: 80, width: 800, height: 600 }}
+      position={{ x, y }}
+      size={{ width, height }}
+      onDragStop={onDragStop}
+      onResizeStop={onResizeStop}
       minWidth={400}
       minHeight={300}
       bounds="window"
