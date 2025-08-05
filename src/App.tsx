@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyboardEvent, useState } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import MacWindow from "@/components/MacWindow.tsx";
 
 interface Project {
@@ -13,13 +13,13 @@ const projects: Project[] = [
   {
     title: 'React Portfolio',
     description: 'A portfolio built with React and Vite, styled like macOS.',
-    link: 'https://github.com/yourusername/react-macos-portfolio',
+    link: 'https://github.com/yourusername/react-macos-portfolio'
   },
   {
     title: 'Todo App',
     description: 'A sleek todo app with local storage and React hooks.',
-    link: 'https://github.com/yourusername/react-todo-app',
-  },
+    link: 'https://github.com/yourusername/react-todo-app'
+  }
 ];
 
 interface DockItem {
@@ -30,13 +30,24 @@ interface DockItem {
 const dockItems: DockItem[] = [
   { id: 'about', label: 'About' },
   { id: 'projects', label: 'Projects' },
-  { id: 'contact', label: 'Contact' },
+  { id: 'contact', label: 'Contact' }
 ];
 
 export default function App() {
   const [openWindows, setOpenWindows] = useState<{ [key in DockItem['id']]?: boolean }>({
     about: true,
   });
+
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('darkMode') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
 
   const toggleWindow = (id: DockItem['id']) => {
     setOpenWindows((prev) => ({
@@ -61,27 +72,35 @@ export default function App() {
   };
 
   return (
-    <div className="bg-gray-300 min-h-screen py-10 font-sans select-none relative">
-      {/* Desktop icons */}
+    <div className={`${darkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-300 text-gray-900'} min-h-screen py-10 font-sans select-none relative transition-colors duration-300`}>
+
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="px-3 py-1 rounded-md border border-gray-600 hover:bg-gray-700 hover:text-white focus:outline-none"
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+      </div>
+
       <div className="flex gap-8 px-10 pb-10 flex-wrap select-none">
         {dockItems.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => toggleWindow(id)}
-            className="flex flex-col items-center w-20 p-2 rounded-lg hover:bg-gray-400/40 transition cursor-pointer focus:outline-none"
+            className={`${darkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-400/40'} flex flex-col items-center w-20 p-2 rounded-lg transition cursor-pointer focus:outline-none`}
             aria-pressed={openWindows[id] ? 'true' : 'false'}
             aria-label={`${label} window icon`}
           >
-            {/* Simple folder/file emoji as icon, replace with real icons if you want */}
             <span className="text-5xl select-none">{id === 'about' ? '👤' : id === 'projects' ? '📁' : '📬'}</span>
             <span className="mt-2 text-center font-semibold">{label}</span>
           </button>
         ))}
       </div>
 
-      {/* Windows */}
       {openWindows.about && (
-        <MacWindow title="About Me" onClose={() => closeWindow('about')}>
+        <MacWindow title="About Me" onClose={() => closeWindow('about')} darkMode={darkMode}>
           <section className="leading-relaxed">
             <h2 className="font-bold mb-2 text-xl">About Me</h2>
             <p>// TODO: Write This...</p>
@@ -90,7 +109,7 @@ export default function App() {
       )}
 
       {openWindows.projects && (
-        <MacWindow title="Projects" onClose={() => closeWindow('projects')}>
+        <MacWindow title="Projects" onClose={() => closeWindow('projects')} darkMode={darkMode}>
           <section>
             <h2 className="font-bold mb-3 text-xl">Projects</h2>
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 list-none p-0">
@@ -101,10 +120,10 @@ export default function App() {
                   tabIndex={0}
                   onClick={() => handleProjectClick(link)}
                   onKeyDown={(e) => handleProjectKeyDown(e, link)}
-                  className="p-4 bg-white rounded-xl shadow hover:shadow-lg hover:scale-105 transition-all cursor-pointer focus:outline-none"
+                  className={`${darkMode ? 'bg-gray-800 text-gray-200 hover:shadow-lg' : 'bg-white text-gray-900 hover:shadow-lg'} p-4 rounded-xl shadow hover:scale-105 transition-all cursor-pointer focus:outline-none`}
                 >
                   <h3 className="m-0 font-semibold text-lg text-blue-500">{title}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{description}</p>
+                  <p className="mt-1 text-sm">{description}</p>
                 </li>
               ))}
             </ul>
@@ -113,24 +132,24 @@ export default function App() {
       )}
 
       {openWindows.contact && (
-        <MacWindow title="Contact" onClose={() => closeWindow('contact')}>
+        <MacWindow title="Contact" onClose={() => closeWindow('contact')} darkMode={darkMode}>
           <section>
             <h2 className="font-bold mb-3 text-xl">Contact</h2>
             <p>
               Email:{' '}
-              <a href="mailto:contact@kyubae.com" className="text-blue-500 hover:underline">
+              <a href="mailto:contact@kyubae.com" className="text-blue-400 hover:underline">
                 contact@kyubae.com
               </a>
             </p>
             <p>
               GitHub:{' '}
-              <a href="https://github.com/LordKyubae" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+              <a href="https://github.com/LordKyubae" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                 github.com/LordKyubae
               </a>
             </p>
             <p>
               X (Twitter):{' '}
-              <a href="https://x.com//LordKyubae" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+              <a href="https://x.com/LordKyubae" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                 x.com/LordKyubae
               </a>
             </p>

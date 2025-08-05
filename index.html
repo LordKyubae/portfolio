@@ -6,6 +6,17 @@
         <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
         <link href="/src/index.css" rel="stylesheet"/>
         <title>kyubae.com | Samuel Taylor</title>
+
+        <script>
+            (function() {
+                try {
+                    const darkMode = localStorage.getItem('darkMode');
+                    if (darkMode === 'true') {
+                        document.documentElement.classList.add('dark');
+                    }
+                } catch(e) {}
+            })();
+        </script>
     </head>
     <body>
         <div id="root"></div>

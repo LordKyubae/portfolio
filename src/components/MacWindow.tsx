@@ -6,6 +6,7 @@ interface MacWindowProps {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  darkMode?: boolean;
 }
 
 interface TrafficLightProps {
@@ -38,7 +39,7 @@ const TrafficLight: React.FC<TrafficLightProps> = ({ color, onClick }) => (
   </svg>
 );
 
-const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose }) => {
+const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose, darkMode = false }) => {
   return (
     <Rnd
       default={{ x: 100, y: 80, width: 800, height: 600 }}
@@ -57,29 +58,31 @@ const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose }) => {
         topLeft: true
       }}
       style={{
-        background: '#f0f0f3',
+        background: darkMode ? '#1e1e1e' : '#f0f0f3',
         borderRadius: 12,
-        boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+        boxShadow: darkMode ? '0 15px 30px rgba(0,0,0,0.8)' : '0 15px 30px rgba(0,0,0,0.1)',
         fontFamily: '"San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen',
         userSelect: 'none',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        color: darkMode ? '#eee' : '#222'
       }}
     >
       <div
         className="title-bar"
         style={{
           height: 36,
-          background: '#e0e0e0',
+          background: darkMode ? '#2c2c2c' : '#e0e0e0',
           borderTopLeftRadius: 12,
           borderTopRightRadius: 12,
           display: 'flex',
           alignItems: 'center',
           padding: '0 16px',
-          boxShadow: 'inset 0 -1px 0 #c6c6c6',
+          boxShadow: darkMode ? 'inset 0 -1px 0 #444' : 'inset 0 -1px 0 #c6c6c6',
           flexShrink: 0,
-          userSelect: 'none'
+          userSelect: 'none',
+          color: darkMode ? '#ccc' : '#333'
         }}
       >
         <div style={{ display: 'flex', gap: 8 }}>
@@ -103,7 +106,7 @@ const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose }) => {
             marginRight: 'auto',
             fontWeight: 600,
             fontSize: 14,
-            color: '#333',
+            color: 'inherit',
             userSelect: 'text',
             pointerEvents: 'none'
           }}
@@ -115,7 +118,7 @@ const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose }) => {
       <div
         style={{
           padding: 24,
-          color: '#222',
+          color: 'inherit',
           overflowY: 'auto',
           flexGrow: 1,
           userSelect: 'text'
