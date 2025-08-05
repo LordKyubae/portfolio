@@ -1,9 +1,11 @@
 import React, { ReactNode } from 'react';
 import { Rnd } from 'react-rnd';
+import { toast } from "sonner";
 
 interface MacWindowProps {
   title: string;
   children: ReactNode;
+  onClose: () => void;
 }
 
 interface TrafficLightProps {
@@ -36,7 +38,7 @@ const TrafficLight: React.FC<TrafficLightProps> = ({ color, onClick }) => (
   </svg>
 );
 
-const MacWindow: React.FC<MacWindowProps> = ({ title, children }) => {
+const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose }) => {
   return (
     <Rnd
       default={{ x: 100, y: 80, width: 800, height: 600 }}
@@ -83,15 +85,15 @@ const MacWindow: React.FC<MacWindowProps> = ({ title, children }) => {
         <div style={{ display: 'flex', gap: 8 }}>
           <TrafficLight
             color="#ff5f56"
-            onClick={() => alert('Close button clicked')}
+            onClick={onClose}
           />
           <TrafficLight
             color="#ffbd2e"
-            onClick={() => alert('Minimize button clicked')}
+            onClick={() => toast.info('Minimize button clicked')}
           />
           <TrafficLight
             color="#27c93f"
-            onClick={() => alert('Maximize button clicked')}
+            onClick={() => toast.info('Maximize button clicked')}
           />
         </div>
 
