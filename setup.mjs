@@ -1,0 +1,31 @@
+import fs from "fs";
+import { config as loadEnvFile } from "dotenv";
+import { spawnSync } from "child_process";
+
+if (!fs.existsSync(".env.local")) {
+  process.exit(0);
+}
+
+const config = {};
+loadEnvFile({
+  path: ".env.local",
+  processEnv: config
+});
+
+const runOnceWorkflow = process.argv.includes("--once");
+
+if (runOnceWorkflow && config.SETUP_SCRIPT_RAN !== undefined) {
+  process.exit(0);
+}
+
+const result = spawnSync("npx", ["@convex-dev/auth", "--skip-git-check"], {
+  stdio: "inherit"
+});
+
+if (runOnceWorkflow) {
+  fs.writeFileSync(".env.local", `\nSETUP_SCRIPT_RAN=1\n`, {
+    flag: "a"
+  });
+}
+
+process.exit(result.status);
