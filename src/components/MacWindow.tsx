@@ -11,6 +11,8 @@ interface MacWindowProps {
   y: number;
   width: number;
   height: number;
+  onDragStop?: (e: any, data: { x: number; y: number }) => void;
+  onResizeStop?: (e: any, direction: any, ref: HTMLElement, delta: any, position: { x: number; y: number }) => void;
   zIndex: number;
   onClick?: () => void;
 }
