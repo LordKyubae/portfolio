@@ -2,23 +2,26 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { Doc } from "../convex/_generated/dataModel";
 import { useEffect, useState } from "react";
+import MenuBar from "@/components/MenuBar.tsx";
 import MacWindow from "@/components/MacWindow.tsx";
 import { getIconComponent } from "@/lib/utils.ts";
 import * as FaIcons from "react-icons/fa";
-import { FaGithub, FaTwitter } from "react-icons/fa";
-import ContactForm from "./components/ContactForm";
-import { Doc } from "../convex/_generated/dataModel";
+import ContactForm from "@/components/ContactForm.tsx";
+import { FaEnvelope, FaFolder, FaGithub, FaTwitter, FaUser } from "react-icons/fa";
+import Dock from "@/components/Dock.tsx";
 
-interface DockItem {
+export interface DockItem {
   id: 'about' | 'projects' | 'contact';
   label: string;
+  icon: React.ReactNode;
 }
 
 const dockItems: DockItem[] = [
-  { id: 'about', label: 'About' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'contact', label: 'Contact' }
+  { id: 'about', label: 'About', icon: <FaUser /> },
+  { id: 'projects', label: 'Projects', icon: <FaFolder /> },
+  { id: 'contact', label: 'Contact', icon: <FaEnvelope /> }
 ];
 
 interface WindowState {
@@ -120,16 +123,17 @@ export default function App() {
   const toggleWindow = (id: DockItem['id']) => {
     setWindowsLayout((prev) => {
       const prevState = prev[id] || defaultLayout[id];
+      const newZ = highestZIndex + 1;
+      setHighestZIndex(newZ);
       return {
         ...prev,
         [id]: {
           ...prevState,
           isOpen: !prevState?.isOpen,
-          zIndex: highestZIndex + 1
+          zIndex: newZ
         }
       };
     });
-    setHighestZIndex(prev => prev + 1);
   };
 
   const closeWindow = (id: DockItem['id']) => {
@@ -155,36 +159,18 @@ export default function App() {
     }));
   };
 
+  // Determine active window title by highest zIndex of open windows
+  const openWindows = Object.entries(windowsLayout)
+    .filter(([, layout]) => layout?.isOpen)
+    .sort((a, b) => (b[1]?.zIndex || 0) - (a[1]?.zIndex || 0));
+
+  const activeWindowTitle = openWindows.length > 0 ? openWindows[0][0] : "Portfolio";
+
   return (
     <div
       className={`${darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-300 text-gray-900"} min-h-screen py-10 font-sans select-none relative transition-colors duration-300`}
     >
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="px-3 py-1 rounded-md border border-gray-600 hover:bg-gray-700 hover:text-white focus:outline-none"
-          aria-label="Toggle dark mode"
-        >
-          {darkMode ? "☀️" : "🌙"}
-        </button>
-      </div>
-
-      <div className="flex gap-8 px-10 pb-10 flex-wrap select-none">
-        {dockItems.map(({ id, label }) => (
-          <button
-            key={id}
-            onClick={() => toggleWindow(id)}
-            className={`${darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-400/40"} flex flex-col items-center w-20 p-2 rounded-lg transition cursor-pointer focus:outline-none`}
-            aria-pressed={windowsLayout[id]?.isOpen ? "true" : "false"}
-            aria-label={`${label} window icon`}
-          >
-            <span className="text-5xl select-none">
-              {id === "about" ? "👤" : id === "projects" ? "📁" : "📬"}
-            </span>
-            <span className="mt-2 text-center font-semibold">{label}</span>
-          </button>
-        ))}
-      </div>
+      <MenuBar activeWindowTitle={activeWindowTitle} darkMode={darkMode} toggleDarkMode={() => setDarkMode(d => !d)} />
 
       {Object.entries(windowsLayout).map(([id, layout]) =>
         layout?.isOpen ? (
@@ -215,7 +201,7 @@ export default function App() {
                 <h2 className="font-bold mb-3 text-xl">Projects</h2>
                 {Object.entries(projectsByClient).map(([client, clientProjects]) => (
                   <div key={client} className="mb-8">
-                    <h3 className="font-semibold text-lg mb-4 text-gray-700 dark:text-gray-300">{client}</h3>
+                    <h3 className={`font-semibold text-lg mb-4 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>{client}</h3>
                     <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 list-none p-0">
                       {clientProjects.map(({ title, description, links }) => (
                         <li
@@ -288,6 +274,15 @@ export default function App() {
           </MacWindow>
         ) : null
       )}
+
+      <Dock
+        items={dockItems}
+        openWindows={Object.fromEntries(
+          Object.entries(windowsLayout).map(([id, layout]) => [id, layout?.isOpen || false])
+        )}
+        darkMode={darkMode}
+        onClick={toggleWindow}
+      />
     </div>
   );
 }
