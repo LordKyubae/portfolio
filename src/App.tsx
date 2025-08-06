@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import MacWindow from "@/components/MacWindow.tsx";
 import { getIconComponent } from "@/lib/utils.ts";
 import * as FaIcons from "react-icons/fa";
+import ContactForm from "./components/ContactForm";
+import { FaGithub, FaTwitter } from "react-icons/fa";
 
 interface DockItem {
   id: 'about' | 'projects' | 'contact';
@@ -225,32 +227,38 @@ export default function App() {
 
             {id === "contact" && (
               <section>
-                <h2 className="font-bold mb-3 text-xl">
-                  Contact
-                </h2>
-                // TODO: Add a Contact Form
-                <p>
-                  GitHub:{" "}
-                  <a
-                    href="https://github.com/LordKyubae"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline"
-                  >
-                    github.com/LordKyubae
-                  </a>
-                </p>
-                <p>
-                  X (Twitter):{" "}
-                  <a
-                    href="https://x.com/LordKyubae"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline"
-                  >
-                    x.com/LordKyubae
-                  </a>
-                </p>
+                <h2 className="font-bold mb-3 text-xl">Contact</h2>
+
+                <div className="flex flex-col md:flex-row gap-8">
+                  <div className="flex-[3] min-w-[300px]">
+                    <ContactForm />
+                  </div>
+
+                  <div className="flex-[1] min-w-[200px] flex flex-col justify-start gap-4">
+                    <p className="flex items-center space-x-2">
+                      <FaGithub />
+                      <a
+                        href="https://github.com/LordKyubae"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline"
+                      >
+                        LordKyubae
+                      </a>
+                    </p>
+                    <p className="flex items-center space-x-2">
+                      <FaTwitter />
+                      <a
+                        href="https://x.com/LordKyubae"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline"
+                      >
+                        LordKyubae
+                      </a>
+                    </p>
+                  </div>
+                </div>
               </section>
             )}
           </MacWindow>

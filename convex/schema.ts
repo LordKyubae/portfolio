@@ -8,5 +8,10 @@ export default defineSchema({
     title: v.string(),
     description: v.string(),
     links: v.record(v.string(), v.string())
+  }),
+  contactMessages: defineTable({
+    name: v.string(),
+    email: v.string(),
+    message: v.string()
   })
 });
