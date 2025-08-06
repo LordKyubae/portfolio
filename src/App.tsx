@@ -1,27 +1,27 @@
 "use client";
 
+import { ReactNode, useEffect, useState } from "react";
+import { FaEnvelope, FaFolder, FaUser } from "react-icons/fa6";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Doc } from "../convex/_generated/dataModel";
-import { useEffect, useState } from "react";
 import MenuBar from "@/components/MenuBar.tsx";
 import MacWindow from "@/components/MacWindow.tsx";
-import { getIconComponent } from "@/lib/utils.ts";
-import * as FaIcons from "react-icons/fa";
-import ContactForm from "@/components/ContactForm.tsx";
-import { FaEnvelope, FaFolder, FaGithub, FaTwitter, FaUser } from "react-icons/fa";
+import AboutWindow from "@/windows/AboutWindow.tsx";
+import ProjectsWindow from "@/windows/ProjectsWindow.tsx";
+import ContactWindow from "@/windows/ContactWindow.tsx";
 import Dock from "@/components/Dock.tsx";
 
 export interface DockItem {
-  id: 'about' | 'projects' | 'contact';
+  id: "about" | "projects" | "contact";
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 const dockItems: DockItem[] = [
-  { id: 'about', label: 'About', icon: <FaUser /> },
-  { id: 'projects', label: 'Projects', icon: <FaFolder /> },
-  { id: 'contact', label: 'Contact', icon: <FaEnvelope /> }
+  { id: "about", label: "About", icon: <FaUser /> },
+  { id: "projects", label: "Projects", icon: <FaFolder /> },
+  { id: "contact", label: "Contact", icon: <FaEnvelope /> }
 ];
 
 interface WindowState {
@@ -33,144 +33,105 @@ interface WindowState {
   zIndex: number;
 }
 
-type WindowsLayout = {
-  [key in DockItem['id']]?: WindowState;
-};
+type WindowsLayout = Record<DockItem["id"], WindowState>;
 
 const defaultLayout: WindowsLayout = {
-  about: {
-    isOpen: true,
-    x: 100,
-    y: 80,
-    width: 800,
-    height: 600,
-    zIndex: 1
-  },
-  projects: {
-    isOpen: false,
-    x: 150,
-    y: 100,
-    width: 800,
-    height: 600,
-    zIndex: 1
-  },
-  contact: {
-    isOpen: false,
-    x: 200,
-    y: 120,
-    width: 800,
-    height: 600,
-    zIndex: 1
-  }
+  about: { isOpen: true, x: 100, y: 80, width: 800, height: 600, zIndex: 1 },
+  projects: { isOpen: false, x: 150, y: 100, width: 800, height: 600, zIndex: 1 },
+  contact: { isOpen: false, x: 200, y: 120, width: 800, height: 600, zIndex: 1 }
 };
 
 export default function App() {
-  const projects = useQuery(api.myFunctions.listProjects) || [];
+  const projects = useQuery(api.myFunctions.listProjects) ?? [];
   const projectsByClient = projects.reduce<Record<string, Doc<"projects">[]>>((acc, project) => {
-    const clientKey = project.client || "Personal";
-    if (!acc[clientKey]) acc[clientKey] = [];
-    acc[clientKey].push(project);
+    const clientKey = project.client ?? "Personal";
+    (acc[clientKey] ??= []).push(project);
     return acc;
   }, {});
 
   const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true';
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("darkMode") === "true";
     }
     return false;
   });
 
   const [windowsLayout, setWindowsLayout] = useState<WindowsLayout>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('windowsLayout');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return defaultLayout;
-        }
+    if (typeof window !== "undefined") {
+      try {
+        return JSON.parse(localStorage.getItem("windowsLayout") ?? "") || defaultLayout;
+      } catch {
+        return defaultLayout;
       }
     }
     return defaultLayout;
   });
 
-  const [highestZIndex, setHighestZIndex] = useState(() => {
-    return Math.max(...Object.values(windowsLayout).map((w) => w?.zIndex || 1));
-  });
+  const [highestZIndex, setHighestZIndex] = useState(() =>
+    Math.max(...Object.values(windowsLayout).map((w) => w?.zIndex ?? 1))
+  );
 
   useEffect(() => {
-    localStorage.setItem('darkMode', darkMode.toString());
+    localStorage.setItem("darkMode", darkMode.toString());
   }, [darkMode]);
 
   useEffect(() => {
-    localStorage.setItem('windowsLayout', JSON.stringify(windowsLayout));
+    localStorage.setItem("windowsLayout", JSON.stringify(windowsLayout));
   }, [windowsLayout]);
 
-  const bringToFront = (id: DockItem['id']) => {
-    setWindowsLayout(prev => {
+  const bringToFront = (id: DockItem["id"]) => {
+    setWindowsLayout((prev) => {
       const newZ = highestZIndex + 1;
       setHighestZIndex(newZ);
       return {
         ...prev,
-        [id]: {
-          ...prev[id],
-          zIndex: newZ
-        }
+        [id]: { ...prev[id], zIndex: newZ }
       };
     });
   };
 
-  const toggleWindow = (id: DockItem['id']) => {
+  const toggleWindow = (id: DockItem["id"]) => {
     setWindowsLayout((prev) => {
-      const prevState = prev[id] || defaultLayout[id];
+      const prevState = prev[id] ?? defaultLayout[id];
       const newZ = highestZIndex + 1;
       setHighestZIndex(newZ);
       return {
         ...prev,
         [id]: {
           ...prevState,
-          isOpen: !prevState?.isOpen,
+          isOpen: !prevState.isOpen,
           zIndex: newZ
         }
       };
     });
   };
 
-  const closeWindow = (id: DockItem['id']) => {
+  const closeWindow = (id: DockItem["id"]) => {
     setWindowsLayout((prev) => ({
       ...prev,
-      [id]: {
-        ...prev[id],
-        isOpen: false
-      }
+      [id]: { ...prev[id], isOpen: false }
     }));
   };
 
-  const updateWindowPositionSize = (id: DockItem['id'], x: number, y: number, width: number, height: number) => {
-    setWindowsLayout(prev => ({
+  const updateWindowPositionSize = (id: DockItem["id"], x: number, y: number, width: number, height: number) => {
+    setWindowsLayout((prev) => ({
       ...prev,
-      [id]: {
-        ...prev[id],
-        x,
-        y,
-        width,
-        height
-      }
+      [id]: { ...prev[id], x, y, width, height }
     }));
   };
 
-  // Determine active window title by highest zIndex of open windows
-  const openWindows = Object.entries(windowsLayout)
-    .filter(([, layout]) => layout?.isOpen)
-    .sort((a, b) => (b[1]?.zIndex || 0) - (a[1]?.zIndex || 0));
-
-  const activeWindowTitle = openWindows.length > 0 ? openWindows[0][0] : "Portfolio";
+  const activeWindowTitle =
+    Object.entries(windowsLayout)
+      .filter(([, w]) => w?.isOpen)
+      .sort((a, b) => (b[1]?.zIndex ?? 0) - (a[1]?.zIndex ?? 0))[0]?.[0] ?? "Portfolio";
 
   return (
     <div
-      className={`${darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-300 text-gray-900"} min-h-screen py-10 font-sans select-none relative transition-colors duration-300`}
+      className={`min-h-screen py-10 font-sans select-none relative transition-colors duration-300 ${
+        darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-300 text-gray-900"
+      }`}
     >
-      <MenuBar activeWindowTitle={activeWindowTitle} darkMode={darkMode} toggleDarkMode={() => setDarkMode(d => !d)} />
+      <MenuBar activeWindowTitle={activeWindowTitle} darkMode={darkMode} toggleDarkMode={() => setDarkMode((d) => !d)} />
 
       {Object.entries(windowsLayout).map(([id, layout]) =>
         layout?.isOpen ? (
@@ -185,92 +146,13 @@ export default function App() {
             height={layout.height}
             zIndex={layout.zIndex}
             onClick={() => bringToFront(id as DockItem["id"])}
-            onDragStop={(_e, d) => updateWindowPositionSize(id as DockItem["id"], d.x, d.y, layout.width, layout.height)}
-            onResizeStop={(_e, _direction, ref, _delta, position) => {
-              updateWindowPositionSize(id as DockItem["id"], position.x, position.y, ref.offsetWidth, ref.offsetHeight);
-            }}
+            onDragStop={(_, data) => updateWindowPositionSize(id as DockItem["id"], data.x, data.y, layout.width, layout.height)}
+            onResizeStop={(_, __, ref, ___, position) => updateWindowPositionSize(id as DockItem["id"], position.x, position.y, ref.offsetWidth, ref.offsetHeight)
+            }
           >
-            {id === "about" && (
-              <section className="leading-relaxed">
-                <h2 className="font-bold mb-2 text-xl">About Me</h2>
-                <p>// TODO: Write This...</p>
-              </section>
-            )}
-            {id === "projects" && (
-              <section>
-                <h2 className="font-bold mb-3 text-xl">Projects</h2>
-                {Object.entries(projectsByClient).map(([client, clientProjects]) => (
-                  <div key={client} className="mb-8">
-                    <h3 className={`font-semibold text-lg mb-4 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>{client}</h3>
-                    <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 list-none p-0">
-                      {clientProjects.map(({ title, description, links }) => (
-                        <li
-                          key={title}
-                          role="link"
-                          tabIndex={0}
-                          className={`${darkMode ? "bg-gray-800 text-gray-200 hover:shadow-lg" : "bg-white text-gray-900 hover:shadow-lg"} p-4 rounded-xl shadow hover:scale-105 transition-all cursor-pointer focus:outline-none`}
-                        >
-                          <h4 className="m-0 font-semibold text-lg text-blue-500">{title}</h4>
-                          <p className="mt-1 text-sm">{description}</p>
-                          <div className="flex gap-3 mt-2">
-                            {Object.entries(links).map(([iconName, url]) => {
-                              const Icon = getIconComponent(iconName as keyof typeof FaIcons);
-                              if (!Icon) return null;
-                              return (
-                                <a
-                                  key={iconName}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  aria-label={iconName}
-                                  className="inline-block mr-2"
-                                >
-                                  <Icon size={20} />
-                                </a>
-                              );
-                            })}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </section>
-            )}
-            {id === "contact" && (
-              <section>
-                <h2 className="font-bold mb-3 text-xl">Contact</h2>
-                <div className="flex flex-col md:flex-row gap-8">
-                  <div className="flex-[3] min-w-[300px]">
-                    <ContactForm />
-                  </div>
-                  <div className="flex-[1] min-w-[200px] flex flex-col justify-start gap-4">
-                    <p className="flex items-center space-x-2">
-                      <FaGithub />
-                      <a
-                        href="https://github.com/LordKyubae"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline"
-                      >
-                        LordKyubae
-                      </a>
-                    </p>
-                    <p className="flex items-center space-x-2">
-                      <FaTwitter />
-                      <a
-                        href="https://x.com/LordKyubae"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline"
-                      >
-                        LordKyubae
-                      </a>
-                    </p>
-                  </div>
-                </div>
-              </section>
-            )}
+            {id === "about" && <AboutWindow />}
+            {id === "projects" && <ProjectsWindow projectsByClient={projectsByClient} darkMode={darkMode} />}
+            {id === "contact" && <ContactWindow />}
           </MacWindow>
         ) : null
       )}
@@ -278,7 +160,7 @@ export default function App() {
       <Dock
         items={dockItems}
         openWindows={Object.fromEntries(
-          Object.entries(windowsLayout).map(([id, layout]) => [id, layout?.isOpen || false])
+          Object.entries(windowsLayout).map(([id, w]) => [id, w.isOpen])
         )}
         darkMode={darkMode}
         onClick={toggleWindow}
