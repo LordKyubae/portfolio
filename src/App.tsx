@@ -8,6 +8,7 @@ import { getIconComponent } from "@/lib/utils.ts";
 import * as FaIcons from "react-icons/fa";
 import ContactForm from "./components/ContactForm";
 import { FaGithub, FaTwitter } from "react-icons/fa";
+import { Doc } from "../convex/_generated/dataModel";
 
 interface DockItem {
   id: 'about' | 'projects' | 'contact';
@@ -67,6 +68,12 @@ const defaultLayout: WindowsLayout = {
 
 export default function App() {
   const projects = useQuery(api.myFunctions.listProjects) || [];
+  const projectsByClient = projects.reduce<Record<string, Doc<"projects">[]>>((acc, project) => {
+    const clientKey = project.client || "Personal";
+    if (!acc[clientKey]) acc[clientKey] = [];
+    acc[clientKey].push(project);
+    return acc;
+  }, {});
 
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -191,37 +198,45 @@ export default function App() {
 
             {id === "projects" && (
               <section>
-                <h2 className="font-bold mb-3 text-xl">
-                  Projects
-                </h2>
-                <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 list-none p-0">
-                  {projects.map(({ title, description, links }) => (
-                    <li
-                      key={title}
-                      role="link"
-                      tabIndex={0}
-                      className={`${darkMode ? "bg-gray-800 text-gray-200 hover:shadow-lg" : "bg-white text-gray-900 hover:shadow-lg"} p-4 rounded-xl shadow hover:scale-105 transition-all cursor-pointer focus:outline-none`}
-                    >
-                      <h3 className="m-0 font-semibold text-lg text-blue-500">
-                        {title}
-                      </h3>
-                      <p className="mt-1 text-sm">
-                        {description}
-                      </p>
-                      <div className="flex gap-3 mt-2">
-                        {Object.entries(links).map(([iconName, url]) => {
-                          const Icon = getIconComponent(iconName as keyof typeof FaIcons);
-                          if (!Icon) return null;
-                          return (
-                            <a key={iconName} href={url} target="_blank" rel="noopener noreferrer" aria-label={iconName} className="inline-block mr-2">
-                              <Icon size={20} />
-                            </a>
-                          );
-                        })}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <h2 className="font-bold mb-3 text-xl">Projects</h2>
+
+                {Object.entries(projectsByClient).map(([client, clientProjects]) => (
+                  <div key={client} className="mb-8">
+                    <h3 className="font-semibold text-lg mb-4 text-gray-700 dark:text-gray-300">{client}</h3>
+
+                    <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 list-none p-0">
+                      {clientProjects.map(({ title, description, links }) => (
+                        <li
+                          key={title}
+                          role="link"
+                          tabIndex={0}
+                          className={`${darkMode ? "bg-gray-800 text-gray-200 hover:shadow-lg" : "bg-white text-gray-900 hover:shadow-lg"} p-4 rounded-xl shadow hover:scale-105 transition-all cursor-pointer focus:outline-none`}
+                        >
+                          <h4 className="m-0 font-semibold text-lg text-blue-500">{title}</h4>
+                          <p className="mt-1 text-sm">{description}</p>
+                          <div className="flex gap-3 mt-2">
+                            {Object.entries(links).map(([iconName, url]) => {
+                              const Icon = getIconComponent(iconName as keyof typeof FaIcons);
+                              if (!Icon) return null;
+                              return (
+                                <a
+                                  key={iconName}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={iconName}
+                                  className="inline-block mr-2"
+                                >
+                                  <Icon size={20} />
+                                </a>
+                              );
+                            })}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </section>
             )}
 
