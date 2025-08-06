@@ -1,9 +1,11 @@
 "use client";
 
-import { KeyboardEvent, useEffect, useState } from "react";
-import MacWindow from "@/components/MacWindow.tsx";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { useEffect, useState } from "react";
+import MacWindow from "@/components/MacWindow.tsx";
+import { getIconComponent } from "@/lib/utils.ts";
+import * as FaIcons from "react-icons/fa";
 
 interface DockItem {
   id: 'about' | 'projects' | 'contact';
@@ -11,9 +13,18 @@ interface DockItem {
 }
 
 const dockItems: DockItem[] = [
-  { id: 'about', label: 'About' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'contact', label: 'Contact' }
+  {
+    id: 'about',
+    label: 'About'
+  },
+  {
+    id: 'projects',
+    label: 'Projects'
+  },
+  {
+    id: 'contact',
+    label: 'Contact'
+  }
 ];
 
 interface WindowState {
@@ -29,9 +40,27 @@ type WindowsLayout = {
 };
 
 const defaultLayout: WindowsLayout = {
-  about: { isOpen: true, x: 100, y: 80, width: 800, height: 600 },
-  projects: { isOpen: false, x: 150, y: 100, width: 800, height: 600 },
-  contact: { isOpen: false, x: 200, y: 120, width: 800, height: 600 }
+  about: {
+    isOpen: true,
+    x: 100,
+    y: 80,
+    width: 800,
+    height: 600
+  },
+  projects: {
+    isOpen: false,
+    x: 150,
+    y: 100,
+    width: 800,
+    height: 600
+  },
+  contact: {
+    isOpen: false,
+    x: 200,
+    y: 120,
+    width: 800,
+    height: 600
+  }
 };
 
 export default function App() {
@@ -71,7 +100,10 @@ export default function App() {
       const prevState = prev[id] || defaultLayout[id];
       return {
         ...prev,
-        [id]: { ...prevState, isOpen: !prevState?.isOpen }
+        [id]: {
+          ...prevState,
+          isOpen: !prevState?.isOpen
+        }
       };
     });
   };
@@ -79,23 +111,24 @@ export default function App() {
   const closeWindow = (id: DockItem['id']) => {
     setWindowsLayout((prev) => ({
       ...prev,
-      [id]: { ...prev[id], isOpen: false }
+      [id]: {
+        ...prev[id],
+        isOpen: false
+      }
     }));
   };
 
   const updateWindowPositionSize = (id: DockItem['id'], x: number, y: number, width: number, height: number) => {
     setWindowsLayout(prev => ({
       ...prev,
-      [id]: { ...prev[id], x, y, width, height }
+      [id]: {
+        ...prev[id],
+        x,
+        y,
+        width,
+        height
+      }
     }));
-  };
-
-  const handleProjectClick = (link: string) => {
-    window.open(link, '_blank', 'noopener');
-  };
-
-  const handleProjectKeyDown = (e: KeyboardEvent, link: string) => {
-    if (e.key === 'Enter') handleProjectClick(link);
   };
 
   return (
@@ -141,8 +174,7 @@ export default function App() {
             width={layout.width}
             height={layout.height}
             onDragStop={(_e, d) => updateWindowPositionSize(id as DockItem["id"], d.x, d.y, layout.width, layout.height)}
-            onResizeStop={(_e, _direction, ref, _delta, position) => {updateWindowPositionSize(id as DockItem["id"], position.x, position.y, ref.offsetWidth, ref.offsetHeight);
-            }}
+            onResizeStop={(_e, _direction, ref, _delta, position) => {updateWindowPositionSize(id as DockItem["id"], position.x, position.y, ref.offsetWidth, ref.offsetHeight);}}
           >
             {id === "about" && (
               <section className="leading-relaxed">
@@ -161,13 +193,11 @@ export default function App() {
                   Projects
                 </h2>
                 <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 list-none p-0">
-                  {projects.map(({ title, description, link }) => (
+                  {projects.map(({ title, description, links }) => (
                     <li
                       key={title}
                       role="link"
                       tabIndex={0}
-                      onClick={() => handleProjectClick(link)}
-                      onKeyDown={(e) => handleProjectKeyDown(e, link)}
                       className={`${darkMode ? "bg-gray-800 text-gray-200 hover:shadow-lg" : "bg-white text-gray-900 hover:shadow-lg"} p-4 rounded-xl shadow hover:scale-105 transition-all cursor-pointer focus:outline-none`}
                     >
                       <h3 className="m-0 font-semibold text-lg text-blue-500">
@@ -176,6 +206,17 @@ export default function App() {
                       <p className="mt-1 text-sm">
                         {description}
                       </p>
+                      <div className="flex gap-3 mt-2">
+                        {Object.entries(links).map(([iconName, url]) => {
+                          const Icon = getIconComponent(iconName as keyof typeof FaIcons);
+                          if (!Icon) return null;
+                          return (
+                            <a key={iconName} href={url} target="_blank" rel="noopener noreferrer" aria-label={iconName} className="inline-block mr-2">
+                              <Icon size={20} />
+                            </a>
+                          );
+                        })}
+                      </div>
                     </li>
                   ))}
                 </ul>

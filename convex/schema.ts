@@ -7,6 +7,6 @@ export default defineSchema({
   projects: defineTable({
     title: v.string(),
     description: v.string(),
-    link: v.string()
+    links: v.record(v.string(), v.string())
   })
 });
