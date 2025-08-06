@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import MacWindow from "@/components/MacWindow.tsx";
 import { getIconComponent } from "@/lib/utils.ts";
 import * as FaIcons from "react-icons/fa";
-import ContactForm from "./components/ContactForm";
 import { FaGithub, FaTwitter } from "react-icons/fa";
+import ContactForm from "./components/ContactForm";
 import { Doc } from "../convex/_generated/dataModel";
 
 interface DockItem {
@@ -16,18 +16,9 @@ interface DockItem {
 }
 
 const dockItems: DockItem[] = [
-  {
-    id: 'about',
-    label: 'About'
-  },
-  {
-    id: 'projects',
-    label: 'Projects'
-  },
-  {
-    id: 'contact',
-    label: 'Contact'
-  }
+  { id: 'about', label: 'About' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'contact', label: 'Contact' }
 ];
 
 interface WindowState {
@@ -36,6 +27,7 @@ interface WindowState {
   y: number;
   width: number;
   height: number;
+  zIndex: number;
 }
 
 type WindowsLayout = {
@@ -48,21 +40,24 @@ const defaultLayout: WindowsLayout = {
     x: 100,
     y: 80,
     width: 800,
-    height: 600
+    height: 600,
+    zIndex: 1
   },
   projects: {
     isOpen: false,
     x: 150,
     y: 100,
     width: 800,
-    height: 600
+    height: 600,
+    zIndex: 1
   },
   contact: {
     isOpen: false,
     x: 200,
     y: 120,
     width: 800,
-    height: 600
+    height: 600,
+    zIndex: 1
   }
 };
 
@@ -96,6 +91,10 @@ export default function App() {
     return defaultLayout;
   });
 
+  const [highestZIndex, setHighestZIndex] = useState(() => {
+    return Math.max(...Object.values(windowsLayout).map((w) => w?.zIndex || 1));
+  });
+
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode.toString());
   }, [darkMode]);
@@ -104,6 +103,20 @@ export default function App() {
     localStorage.setItem('windowsLayout', JSON.stringify(windowsLayout));
   }, [windowsLayout]);
 
+  const bringToFront = (id: DockItem['id']) => {
+    setWindowsLayout(prev => {
+      const newZ = highestZIndex + 1;
+      setHighestZIndex(newZ);
+      return {
+        ...prev,
+        [id]: {
+          ...prev[id],
+          zIndex: newZ
+        }
+      };
+    });
+  };
+
   const toggleWindow = (id: DockItem['id']) => {
     setWindowsLayout((prev) => {
       const prevState = prev[id] || defaultLayout[id];
@@ -111,10 +124,12 @@ export default function App() {
         ...prev,
         [id]: {
           ...prevState,
-          isOpen: !prevState?.isOpen
+          isOpen: !prevState?.isOpen,
+          zIndex: highestZIndex + 1
         }
       };
     });
+    setHighestZIndex(prev => prev + 1);
   };
 
   const closeWindow = (id: DockItem['id']) => {
@@ -182,28 +197,25 @@ export default function App() {
             y={layout.y}
             width={layout.width}
             height={layout.height}
+            zIndex={layout.zIndex}
+            onClick={() => bringToFront(id as DockItem["id"])}
             onDragStop={(_e, d) => updateWindowPositionSize(id as DockItem["id"], d.x, d.y, layout.width, layout.height)}
-            onResizeStop={(_e, _direction, ref, _delta, position) => {updateWindowPositionSize(id as DockItem["id"], position.x, position.y, ref.offsetWidth, ref.offsetHeight);}}
+            onResizeStop={(_e, _direction, ref, _delta, position) => {
+              updateWindowPositionSize(id as DockItem["id"], position.x, position.y, ref.offsetWidth, ref.offsetHeight);
+            }}
           >
             {id === "about" && (
               <section className="leading-relaxed">
-                <h2 className="font-bold mb-2 text-xl">
-                  About Me
-                </h2>
-                <p>
-                  // TODO: Write This...
-                </p>
+                <h2 className="font-bold mb-2 text-xl">About Me</h2>
+                <p>// TODO: Write This...</p>
               </section>
             )}
-
             {id === "projects" && (
               <section>
                 <h2 className="font-bold mb-3 text-xl">Projects</h2>
-
                 {Object.entries(projectsByClient).map(([client, clientProjects]) => (
                   <div key={client} className="mb-8">
                     <h3 className="font-semibold text-lg mb-4 text-gray-700 dark:text-gray-300">{client}</h3>
-
                     <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 list-none p-0">
                       {clientProjects.map(({ title, description, links }) => (
                         <li
@@ -239,16 +251,13 @@ export default function App() {
                 ))}
               </section>
             )}
-
             {id === "contact" && (
               <section>
                 <h2 className="font-bold mb-3 text-xl">Contact</h2>
-
                 <div className="flex flex-col md:flex-row gap-8">
                   <div className="flex-[3] min-w-[300px]">
                     <ContactForm />
                   </div>
-
                   <div className="flex-[1] min-w-[200px] flex flex-col justify-start gap-4">
                     <p className="flex items-center space-x-2">
                       <FaGithub />

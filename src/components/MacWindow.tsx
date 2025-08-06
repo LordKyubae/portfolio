@@ -11,8 +11,8 @@ interface MacWindowProps {
   y: number;
   width: number;
   height: number;
-  onDragStop?: (e: any, data: { x: number; y: number }) => void;
-  onResizeStop?: (e: any, direction: any, ref: HTMLElement, delta: any, position: { x: number; y: number }) => void;
+  zIndex: number;
+  onClick?: () => void;
 }
 
 interface TrafficLightProps {
@@ -43,7 +43,7 @@ const TrafficLight: React.FC<TrafficLightProps> = ({ color, onClick }) => (
   </svg>
 );
 
-const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose, darkMode = false, x, y, width, height, onDragStop, onResizeStop }) => {
+const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose, darkMode = false, x, y, width, height, onDragStop, onResizeStop, zIndex, onClick }) => {
   return (
     <Rnd
       default={{ x: 100, y: 80, width: 800, height: 600 }}
@@ -66,6 +66,7 @@ const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose, darkMod
         topLeft: true
       }}
       style={{
+        zIndex,
         background: darkMode ? '#1e1e1e' : '#f0f0f3',
         borderRadius: 12,
         boxShadow: darkMode ? '0 15px 30px rgba(0,0,0,0.8)' : '0 15px 30px rgba(0,0,0,0.1)',
@@ -76,6 +77,7 @@ const MacWindow: React.FC<MacWindowProps> = ({ title, children, onClose, darkMod
         overflow: 'hidden',
         color: darkMode ? '#eee' : '#222'
       }}
+      onMouseDown={onClick}
     >
       <div
         className="title-bar"
